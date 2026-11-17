@@ -39,6 +39,8 @@ class TaskController
         }
 
         View::render("task/show", [
+            "fromProject" => ($query["from"] ?? "") === "project",
+            "fromCompany" => ($query["parent"] ?? "") === "company",
             "pageTitle" => "Fiche de la tâche",
             "task" => $task,
             "notice" => $this->getNotice($query),
@@ -103,7 +105,9 @@ class TaskController
         $this->renderForm(
             $this->prepareValues($task),
             [],
-            $id
+            $id,
+            ($query["from"] ?? "") === "project",
+            ($query["parent"] ?? "") === "company"
         );
     }
 
@@ -130,7 +134,13 @@ class TaskController
 
         if ($errors !== []) {
             http_response_code(422);
-            $this->renderForm($values, $errors, $id);
+            $this->renderForm(
+                $values,
+                $errors,
+                $id,
+                ($query["from"] ?? "") === "project",
+                ($query["parent"] ?? "") === "company"
+            );
 
             return;
         }
@@ -146,7 +156,11 @@ class TaskController
             );
         }
 
-        View::redirect("tasks/show?id=" . $id . "&notice=updated");
+        View::redirect(
+            "tasks/show?id=" . $id . "&notice=updated"
+                . (($query["from"] ?? "") === "project" ? "&from=project" : "")
+                . (($query["parent"] ?? "") === "company" ? "&parent=company" : "")
+        );
     }
 
     public function delete(
@@ -297,7 +311,9 @@ class TaskController
     private function renderForm(
         array $values,
         array $errors = [],
-        ?int $id = null
+        ?int $id = null,
+        bool $fromProject = false,
+        bool $fromCompany = false
     ): void {
         $projects = new Project();
         $statuses = new Status();
@@ -311,6 +327,8 @@ class TaskController
         $editing = $id !== null;
 
         View::render($editing ? "task/edit" : "task/create", [
+            "fromProject" => $fromProject,
+            "fromCompany" => $fromCompany,
             "pageTitle" => $editing ? "Modifier une tâche" : "Nouvelle tâche",
             "values" => $values,
             "errors" => $errors,
@@ -319,6 +337,8 @@ class TaskController
             "formAction" => BASE . (
                 $editing
                 ? "/tasks/edit?id=" . $id
+                . ($fromProject ? "&from=project" : "")
+                . ($fromCompany ? "&parent=company" : "")
                 : "/tasks/create"
             ),
             "submitLabel" => $editing ? "Enregistrer les modifications" : "Créer la tâche",

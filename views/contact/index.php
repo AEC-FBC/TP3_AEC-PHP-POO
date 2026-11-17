@@ -6,10 +6,11 @@
         <h1>Contacts</h1>
         <p>Consultez les contacts des entreprises.</p>
     </div>
-
+    {% if currentUser.role == 'admin' %}
     <a class="button button--primary" href="{{ base }}/contacts/create">
         Nouveau contact
     </a>
+    {% endif %}
 </div>
 
 {% if notice %}

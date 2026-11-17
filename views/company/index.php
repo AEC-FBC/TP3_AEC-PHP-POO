@@ -6,10 +6,11 @@
         <h1>Entreprises</h1>
         <p>Consultez les entreprises, leurs établissements et leurs projets.</p>
     </div>
-
+    {% if currentUser.role == 'admin' %}
     <a class="button button--primary" href="{{ base }}/companies/create">
         Nouvelle entreprise
     </a>
+    {% endif %}
 </div>
 
 {% if notice %}

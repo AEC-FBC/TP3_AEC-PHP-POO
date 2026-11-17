@@ -17,6 +17,7 @@ class Project extends CRUD
         "description",
         "planned_start_date",
         "planned_end_date",
+        "image_path",
     ];
 
     public function selectWithRelations(): array

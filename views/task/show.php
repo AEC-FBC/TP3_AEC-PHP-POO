@@ -7,9 +7,16 @@
         <p>Projet : {{ task.project_title }}</p>
     </div>
 
+    {% if fromProject %}
+    <a class="button button--secondary"
+        href="{{ base }}/projects/show?id={{ task.project_id }}{% if fromCompany %}&from=company{% endif %}">
+        Retour au projet
+    </a>
+    {% else %}
     <a class="button button--secondary" href="{{ base }}/tasks">
         Retour aux tâches
     </a>
+    {% endif %}
 </div>
 
 {% if notice %}
@@ -37,7 +44,7 @@
 
     <a
         class="button button--primary"
-        href="{{ base }}/tasks/edit?id={{ task.id }}">
+        href="{{ base }}/tasks/edit?id={{ task.id }}{% if fromProject %}&from=project{% endif %}{% if fromCompany %}&parent=company{% endif %}">
         Modifier
     </a>
 </section>

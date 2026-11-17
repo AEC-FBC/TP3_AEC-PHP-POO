@@ -10,13 +10,19 @@
     <div class="data-table__actions">
         <a
             class="button button--primary"
-            href="{{ base }}/projects/edit?id={{ project.id }}">
+            href="{{ base }}/projects/edit?id={{ project.id }}{% if fromCompany %}&from=company{% endif %}">
             Modifier le projet
         </a>
 
+        {% if fromCompany %}
+        <a class="button button--secondary" href="{{ base }}/companies/show?id={{ project.company_id }}">
+            Retour à l'entreprise
+        </a>
+        {% else %}
         <a class="button button--secondary" href="{{ base }}/projects">
             Retour aux projets
         </a>
+        {% endif %}
     </div>
 </div>
 
@@ -72,7 +78,16 @@
     <h2 class="card__title">Description</h2>
     <p>{{ project.description|default('Aucune description.', true)|nl2br }}</p>
 </section>
+{% if project.image_path %}
+<section class="main-container">
+    <h2 class="card__title">Image du projet</h2>
 
+    <img
+        src="{{ base }}/{{ project.image_path }}"
+        alt="Image du projet {{ project.title }}"
+        style="max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px;">
+</section>
+{% endif %}
 <section class="main-container">
     <h2 class="card__title">Services associés</h2>
 
@@ -122,13 +137,13 @@
                         <div class="data-table__actions">
                             <a
                                 class="button button--secondary"
-                                href="{{ base }}/tasks/show?id={{ task.id }}">
+                                href="{{ base }}/tasks/show?id={{ task.id }}&from=project{% if fromCompany %}&parent=company{% endif %}">
                                 Voir
                             </a>
 
                             <a
                                 class="button button--secondary"
-                                href="{{ base }}/tasks/edit?id={{ task.id }}">
+                                href="{{ base }}/tasks/edit?id={{ task.id }}&from=project{% if fromCompany %}&parent=company{% endif %}">
                                 Modifier
                             </a>
                         </div>
@@ -145,7 +160,7 @@
         </table>
     </div>
 </section>
-
+{% if currentUser.role == 'admin' %}
 <section class="main-container">
     <h2 class="card__title">Supprimer le projet</h2>
 
@@ -167,4 +182,5 @@
     </form>
     {% endif %}
 </section>
+{% endif %}
 {% endblock %}

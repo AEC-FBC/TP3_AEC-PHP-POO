@@ -1,4 +1,8 @@
 {
+    "name": "fred-pnc/craft-industria-tp3",
+    "description": "Application de gestion de projets Craft Industria - TP3 PHP MVC et POO",
+    "type": "project",
+    "license": "proprietary",
     "autoload": {
         "psr-4": {
             "App\\Controllers\\": "controllers/",

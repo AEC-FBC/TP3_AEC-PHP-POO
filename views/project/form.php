@@ -22,7 +22,7 @@
 </section>
 {% endif %}
 
-<form method="post" action="{{ formAction }}">
+<form method="post" action="{{ formAction }}" enctype="multipart/form-data">
     <section class="main-container">
         <h2 class="card__title">Informations du projet</h2>
 
@@ -243,15 +243,42 @@
             {% endif %}
         </div>
     </section>
+    <section class="main-container">
+        <h2 class="card__title">Image du projet</h2>
 
+        <div class="form-field">
+            <label class="form-label" for="project_image">
+                Sélectionner une image
+            </label>
+
+            <input
+                class="form-input"
+                type="file"
+                id="project_image"
+                name="project_image"
+                accept="image/jpeg,image/png,image/webp">
+
+            <p>Formats acceptés : JPEG, PNG et WebP. Maximum 2 Mo.</p>
+
+            {% if errors.project_image is defined %}
+            <p>{{ errors.project_image }}</p>
+            {% endif %}
+        </div>
+    </section>
     <div class="data-table__actions">
         <button type="submit" class="button button--primary">
             {{ submitLabel }}
         </button>
 
+        {% if fromCompany %}
+        <a class="button button--secondary" href="{{ base }}/companies/show?id={{ values.company_id }}">
+            Retour à l'entreprise
+        </a>
+        {% else %}
         <a class="button button--secondary" href="{{ base }}/projects">
             Annuler
         </a>
+        {% endif %}
     </div>
 </form>
 {% endblock %}

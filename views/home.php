@@ -21,9 +21,10 @@
         de les associer à un projet, de suivre leur statut
         et de préciser leurs dates.
     </p>
-
+    {% if currentUser %}
     <a class="button button--primary" href="{{ base }}/tasks">
         Consulter les tâches
     </a>
+    {% endif %}
 </section>
 {% endblock %}

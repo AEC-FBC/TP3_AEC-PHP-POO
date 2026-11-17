@@ -6,18 +6,18 @@
         <h1>Projets</h1>
         <p>Consultez et gérez les projets des entreprises.</p>
     </div>
-
+    {% if currentUser.role == 'admin' %}
     <a class="button button--primary" href="{{ base }}/projects/create">
         Nouveau projet
     </a>
 </div>
-
+{% endif %}
 {% if notice %}
 <div class="alert alert--success">
     <p class="alert__text">{{ notice }}</p>
 </div>
 {% endif %}
-
+</div>
 <div class="table-wrapper">
     <table class="data-table">
         <thead>

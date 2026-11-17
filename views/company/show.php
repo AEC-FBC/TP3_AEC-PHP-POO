@@ -32,12 +32,13 @@
             <h2 class="card__title">Établissements</h2>
             <p>Les établissements de cette entreprise.</p>
         </div>
-
+        {% if currentUser.role == 'admin' %}
         <a
             class="button button--primary"
             href="{{ base }}/locations/create?company_id={{ company.id }}">
             Ajouter un établissement
         </a>
+        {% endif %}
     </div>
 
     <div class="table-wrapper">
@@ -140,7 +141,7 @@
                     <td>
                         <a
                             class="button button--secondary"
-                            href="{{ base }}/projects/show?id={{ project.id }}">
+                            href="{{ base }}/projects/show?id={{ project.id }}&from=company">
                             Voir
                         </a>
                     </td>
@@ -156,7 +157,7 @@
         </table>
     </div>
 </section>
-
+{% if currentUser.role == 'admin' %}
 <section class="main-container">
     <h2 class="card__title">Supprimer l'entreprise</h2>
 
@@ -177,4 +178,5 @@
     </form>
     {% endif %}
 </section>
+{% endif %}
 {% endblock %}

@@ -2,6 +2,7 @@
 
 namespace App\Routes;
 
+use App\Models\VisitLog;
 use App\Providers\View;
 
 class Route
@@ -10,24 +11,74 @@ class Route
 
     public static function get(
         string $url,
-        string $controller
+        string $controller,
+        string $role = "public"
     ): void {
-        self::$routes[] = [
-            "url" => $url,
-            "controller" => $controller,
-            "method" => "GET",
-        ];
+        self::register($url, $controller, "GET", $role);
     }
 
     public static function post(
         string $url,
-        string $controller
+        string $controller,
+        string $role = "public"
+    ): void {
+        self::register($url, $controller, "POST", $role);
+    }
+
+    private static function register(
+        string $url,
+        string $controller,
+        string $method,
+        string $role
     ): void {
         self::$routes[] = [
             "url" => $url,
             "controller" => $controller,
-            "method" => "POST",
+            "method" => $method,
+            "role" => $role,
         ];
+    }
+
+    private static function authorize(string $role): bool
+    {
+        if ($role === "public") {
+            return true;
+        }
+
+        $userRole = $_SESSION["user"]["role"] ?? null;
+
+        if ($userRole === null) {
+            View::redirect("login");
+        }
+
+        if ($role === "auth") {
+            return true;
+        }
+
+        if ($role === "admin" && $userRole !== "admin") {
+            http_response_code(403);
+
+            View::render("error", [
+                "msg" => "Vous n'avez pas accès à cette page.",
+            ]);
+
+            return false;
+        }
+
+        if (
+            $role === "client" &&
+            !in_array($userRole, ["client", "admin"], true)
+        ) {
+            http_response_code(403);
+
+            View::render("error", [
+                "msg" => "Vous n'avez pas accès à cette page.",
+            ]);
+
+            return false;
+        }
+
+        return true;
     }
 
     public static function dispatch(): void
@@ -39,6 +90,15 @@ class Route
 
         $method = $_SERVER["REQUEST_METHOD"] ?? "";
         $allowedMethods = [];
+        $user = $_SESSION["user"] ?? null;
+
+        $username = $user["name"] ?? "Visiteur";
+
+        (new VisitLog())->insert([
+            "ip_address" => $_SERVER["REMOTE_ADDR"] ?? "0.0.0.0",
+            "username" => $username,
+            "page_url" => $_SERVER["REQUEST_URI"] ?? "/",
+        ]);
 
         if (!is_string($path)) {
             http_response_code(400);
@@ -59,6 +119,10 @@ class Route
 
             if ($route["method"] !== $method) {
                 continue;
+            }
+
+            if (!self::authorize($route["role"])) {
+                return;
             }
 
             [$controller, $action] = explode(

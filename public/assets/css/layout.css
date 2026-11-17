@@ -11,6 +11,7 @@
     background-color: #FFFFFF;
 }
 
+
 .topbar__brand {
     color: var(--text-secondary-color);
 }
@@ -19,6 +20,51 @@
     font-weight: var(--font-weight-medium);
 }
 
+/* Top bar - Authentification */
+
+.topbar__auth {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-left: auto;
+}
+
+.topbar__auth form {
+    margin: 0;
+}
+
+.topbar__username {
+    color: var(--text-secondary-color);
+    font-size: var(--small-font-size);
+    white-space: nowrap;
+}
+
+.topbar__auth-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--brand-color);
+    border-radius: var(--radius-md);
+    background-color: var(--brand-color);
+    color: #FFFFFF;
+    font: inherit;
+    font-weight: var(--font-weight-medium);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: filter 0.2s ease;
+}
+
+.topbar__auth-button:hover {
+    filter: brightness(0.85);
+}
+
+.topbar__auth-button:focus-visible {
+    outline: 2px solid var(--brand-color);
+    outline-offset: 3px;
+}
 /* Sidebar */
 
 .sidebar {

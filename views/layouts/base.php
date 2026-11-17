@@ -25,7 +25,7 @@
             <a class="sidebar__link" href="{{ base }}/">
                 Accueil
             </a>
-
+            {% if currentUser %}
             <a class="sidebar__link" href="{{ base }}/tasks">
                 <img class="icon" src="{{ asset }}/icons/folder.svg" alt="">
                 Tâches
@@ -41,10 +41,7 @@
                 Entreprises
             </a>
 
-            <a class="sidebar__link" href="{{ base }}/contacts">
-                Contacts
-            </a>
-
+            {% if currentUser.role == 'admin' %}
 
             <a class="sidebar__link" href="{{ base }}/statuses">
                 Statuts
@@ -53,12 +50,38 @@
             <a class="sidebar__link" href="{{ base }}/services">
                 Services
             </a>
+
+            <a class="sidebar__link" href="{{ base }}/admin">
+                Administration
+            </a>
+            <a class="sidebar__link" href="{{ base }}/admin/logs">
+                Journal de bord
+            </a>
+            {% endif %}
+            {% endif %}
         </nav>
     </aside>
 
     <header class="topbar">
         <span class="topbar__brand">Pixel & Craft</span>
         <span class="topbar__page">{{ pageTitle|default('Accueil') }}</span>
+        <div class="topbar__auth">
+            {% if currentUser is defined and currentUser %}
+            <span class="topbar__username">
+                {{ currentUser.name }}
+            </span>
+
+            <form action="{{ base }}/logout" method="post">
+                <button class="topbar__auth-button" type="submit">
+                    Déconnexion
+                </button>
+            </form>
+            {% else %}
+            <a class="topbar__auth-button" href="{{ base }}/login">
+                Connexion
+            </a>
+            {% endif %}
+        </div>
     </header>
 
     <div class="app-layout">

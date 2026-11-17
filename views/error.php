@@ -10,8 +10,14 @@
 </section>
 
 <p>
+    {% if currentUser %}
     <a class="button button--secondary" href="{{ base }}/tasks">
         Retour aux tâches
     </a>
+    {% else %}
+    <a class="button button--secondary" href="{{ base }}/">
+        Retour à l'accueil
+    </a>
+    {% endif %}
 </p>
 {% endblock %}

@@ -65,7 +65,7 @@ class CompanyLocationController
             throw new \RuntimeException("Création de l'établissement impossible.");
         }
 
-        View::redirect("locations?notice=created");
+        View::redirect("companies/show?id=" . (int) $values["company_id"]);
     }
 
     public function edit(array $query = []): void
@@ -111,21 +111,7 @@ class CompanyLocationController
             !isset($errors["company_id"])
             && (int) $values["company_id"] !== (int) $location["company_id"]
         ) {
-            $statement = $model->prepare(
-                "SELECT
-                    (SELECT COUNT(*) FROM contact
-                     WHERE company_location_id = :contact_location)
-                    +
-                    (SELECT COUNT(*) FROM project
-                     WHERE company_location_id = :project_location)"
-            );
-
-            $statement->execute([
-                "contact_location" => $id,
-                "project_location" => $id,
-            ]);
-
-            if ((int) $statement->fetchColumn() > 0) {
+            if ($model->hasDependencies($id)) {
                 $errors["company_id"] =
                     "Cet établissement est utilisé. Il doit conserver son entreprise actuelle.";
             }
@@ -143,7 +129,7 @@ class CompanyLocationController
             );
         }
 
-        View::redirect("locations?notice=updated");
+        View::redirect("companies/show?id=" . (int) $values["company_id"]);
     }
 
     public function delete(array $input, array $query = []): void

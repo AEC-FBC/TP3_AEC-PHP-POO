@@ -51,6 +51,7 @@ class ProjectController
         };
 
         View::render("project/show", [
+            "fromCompany" => ($query["from"] ?? "") === "company",
             "pageTitle" => $project["title"],
             "project" => $project,
             "company" => (new Company())->selectId((int) $project["company_id"]),
@@ -85,8 +86,11 @@ class ProjectController
             return;
         }
 
+        $data = $this->databaseValues($values);
+        $data["image_path"] = $this->uploadImage();
+
         $id = (new Project())->saveWithServices(
-            $this->databaseValues($values),
+            $data,
             $values["service_ids"]
         );
 
@@ -114,7 +118,12 @@ class ProjectController
             array_column($model->getServices($id), "id")
         );
 
-        $this->renderForm($this->prepareValues($project), [], $id);
+        $this->renderForm(
+            $this->prepareValues($project),
+            [],
+            $id,
+            ($query["from"] ?? "") === "company"
+        );
     }
 
     public function update(array $input, array $query = []): void
@@ -127,7 +136,9 @@ class ProjectController
 
         $model = new Project();
 
-        if (!$model->selectId($id)) {
+        $project = $model->selectId($id);
+
+        if (!$project) {
             $this->error(404, "Projet introuvable.");
             return;
         }
@@ -137,17 +148,48 @@ class ProjectController
 
         if ($errors !== []) {
             http_response_code(422);
-            $this->renderForm($values, $errors, $id);
+            $this->renderForm(
+                $values,
+                $errors,
+                $id,
+                ($query["from"] ?? "") === "company"
+            );
             return;
         }
 
-        $model->saveWithServices(
-            $this->databaseValues($values),
-            $values["service_ids"],
-            $id
-        );
+        $data = $this->databaseValues($values);
 
-        View::redirect("projects/show?id=" . $id . "&notice=updated");
+        $oldImagePath = $project["image_path"] ?? null;
+        $newImagePath = $this->uploadImage();
+
+        if ($newImagePath !== null) {
+            $data["image_path"] = $newImagePath;
+        }
+
+        try {
+            $model->saveWithServices(
+                $data,
+                $values["service_ids"],
+                $id
+            );
+        } catch (\Throwable $e) {
+            // Supprimer la nouvelle image si l'enregistrement échoue.
+            if ($newImagePath !== null) {
+                $this->deleteImage($newImagePath);
+            }
+
+            throw $e;
+        }
+
+        // Supprimer l'ancienne image seulement après la sauvegarde.
+        if ($newImagePath !== null) {
+            $this->deleteImage($oldImagePath);
+        }
+
+        View::redirect(
+            "projects/show?id=" . $id . "&notice=updated"
+                . (($query["from"] ?? "") === "company" ? "&from=company" : "")
+        );
     }
 
     public function delete(array $input, array $query = []): void
@@ -160,7 +202,9 @@ class ProjectController
 
         $model = new Project();
 
-        if (!$model->selectId($id)) {
+        $project = $model->selectId($id);
+
+        if (!$project) {
             $this->error(404, "Projet introuvable.");
             return;
         }
@@ -186,7 +230,8 @@ class ProjectController
             );
             return;
         }
-
+        // Supprimer l'image après la suppression réussie du projet.
+        $this->deleteImage($project["image_path"] ?? null);
         View::redirect("projects?notice=deleted");
     }
 
@@ -376,7 +421,8 @@ class ProjectController
     private function renderForm(
         array $values,
         array $errors = [],
-        ?int $id = null
+        ?int $id = null,
+        bool $fromCompany = false
     ): void {
         foreach ($values as $key => $value) {
             if ($key !== "service_ids" && !is_string($value)) {
@@ -400,6 +446,7 @@ class ProjectController
 
         View::render("project/form", [
             "pageTitle" => $id === null ? "Créer un projet" : "Modifier le projet",
+            "fromCompany" => $fromCompany,
             "values" => $values,
             "errors" => $errors,
             "companies" => $companies,
@@ -412,11 +459,78 @@ class ProjectController
                 $id === null
                 ? "/projects/create"
                 : "/projects/edit?id=" . $id
+                . ($fromCompany ? "&from=company" : "")
             ),
             "submitLabel" => $id === null
                 ? "Créer le projet"
                 : "Enregistrer les modifications",
         ]);
+    }
+
+    private function uploadImage(): ?string
+    {
+        $file = $_FILES["project_image"] ?? null;
+
+        if (!$file || $file["error"] === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+
+        if ($file["error"] !== UPLOAD_ERR_OK) {
+            throw new \RuntimeException("Erreur lors du téléversement de l'image.");
+        }
+
+        if ($file["size"] > 2 * 1024 * 1024) {
+            throw new \RuntimeException("L'image ne doit pas dépasser 2 Mo.");
+        }
+
+        $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($file["tmp_name"]);
+
+        $extensions = [
+            "image/jpeg" => "jpg",
+            "image/png" => "png",
+            "image/webp" => "webp",
+        ];
+
+        if (!isset($extensions[$mime])) {
+            throw new \RuntimeException("Format d'image non accepté.");
+        }
+
+        $filename = bin2hex(random_bytes(16)) . "." . $extensions[$mime];
+
+        $directory = dirname(__DIR__) . "/public/uploads/projects";
+
+        if (!is_dir($directory) || !is_writable($directory)) {
+            throw new \RuntimeException("Le dossier des images est inaccessible.");
+        }
+
+        if (!move_uploaded_file($file["tmp_name"], $directory . "/" . $filename)) {
+            throw new \RuntimeException("Impossible d'enregistrer l'image.");
+        }
+
+        return "uploads/projects/" . $filename;
+    }
+
+    private function deleteImage(?string $imagePath): void
+    {
+        if (empty($imagePath)) {
+            return;
+        }
+
+        $directory = realpath(__DIR__ . "/../public/uploads/projects");
+
+        if ($directory === false) {
+            return;
+        }
+
+        $file = realpath(__DIR__ . "/../public/" . $imagePath);
+
+        if (
+            $file !== false
+            && dirname($file) === $directory
+            && is_file($file)
+        ) {
+            unlink($file);
+        }
     }
 
     private function getId(mixed $value): ?int

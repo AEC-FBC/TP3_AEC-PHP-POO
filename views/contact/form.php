@@ -158,17 +158,18 @@
             {{ submitLabel }}
         </button>
 
-        <a class="button button--secondary" href="{{ base }}/contacts">
-            Retour aux contacts
+        <a class="button button--secondary" href="{{ base }}/companies/show?id={{ values.company_id }}">
+            Annuler
         </a>
-
+        {% if currentUser.role == 'admin' %}
         <a class="button button--secondary" href="{{ base }}/projects/create">
             Créer un projet
         </a>
+        {% endif %}
     </div>
 </form>
 
-{% if contactId %}
+{% if contactId and currentUser.role == 'admin' %}
 <section class="main-container">
     <h2 class="card__title">Supprimer le contact</h2>
 

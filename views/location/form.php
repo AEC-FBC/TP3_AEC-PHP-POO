@@ -152,13 +152,13 @@
             {{ submitLabel }}
         </button>
 
-        <a class="button button--secondary" href="{{ base }}/locations">
+        <a class="button button--secondary" href="{{ base }}/companies/show?id={{ values.company_id }}">
             Annuler
         </a>
     </div>
 </form>
 
-{% if locationId %}
+{% if locationId and currentUser.role == 'admin' %}
 <section class="main-container">
     <h2 class="card__title">Supprimer l'établissement</h2>
 

@@ -20,8 +20,8 @@ class Contact extends CRUD
     {
         $sql = "
             SELECT contact.*,
-                   company.name AS company_name,
-                   company_locations.name AS location_name
+            company.name AS company_name,
+            company_locations.name AS location_name
             FROM contact
             INNER JOIN company
                 ON company.id = contact.company_id
@@ -31,5 +31,23 @@ class Contact extends CRUD
         ";
 
         return $this->query($sql)->fetchAll();
+    }
+    public function hasProjectCompanyConflict(int $contactId, int $companyId): bool
+    {
+        $sql = "
+        SELECT COUNT(*)
+        FROM project
+        WHERE primary_contact_id = :contact_id
+        AND company_id <> :company_id
+    ";
+
+        $statement = $this->prepare($sql);
+
+        $statement->execute([
+            "contact_id" => $contactId,
+            "company_id" => $companyId,
+        ]);
+
+        return (int) $statement->fetchColumn() > 0;
     }
 }

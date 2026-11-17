@@ -22,6 +22,12 @@ class View
         $twig->addGlobal("base", BASE);
         $twig->addGlobal("asset", ASSET);
 
+        // Utilisateur connecté, disponible dans toutes les vues
+        $twig->addGlobal(
+            "currentUser",
+            $_SESSION["user"] ?? null
+        );
+
         echo $twig->render($template . ".php", $data);
     }
 

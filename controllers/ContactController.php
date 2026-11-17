@@ -47,7 +47,7 @@ class ContactController
             throw new \RuntimeException("Création du contact impossible.");
         }
 
-        View::redirect("contacts?notice=created");
+        View::redirect("companies/show?id=" . (int) $values["company_id"]);
     }
 
     public function edit(array $query = []): void
@@ -88,23 +88,15 @@ class ContactController
 
         // Éviter de déplacer un contact vers une autre entreprise
         // s'il est déjà le contact principal d'un projet existant.
-        if (!isset($errors["company_id"])) {
-            $statement = $model->prepare(
-                "SELECT COUNT(*)
-                 FROM project
-                 WHERE primary_contact_id = :contact_id
-                   AND company_id <> :company_id"
-            );
-
-            $statement->execute([
-                "contact_id" => $id,
-                "company_id" => $values["company_id"],
-            ]);
-
-            if ((int) $statement->fetchColumn() > 0) {
-                $errors["company_id"] =
-                    "Ce contact est utilisé par un projet d'une autre entreprise.";
-            }
+        if (
+            !isset($errors["company_id"])
+            && $model->hasProjectCompanyConflict(
+                $id,
+                (int) $values["company_id"]
+            )
+        ) {
+            $errors["company_id"] =
+                "Ce contact est utilisé par un projet d'une autre entreprise.";
         }
 
         if ($errors !== []) {
@@ -117,7 +109,7 @@ class ContactController
             throw new \RuntimeException("Modification du contact impossible.");
         }
 
-        View::redirect("contacts?notice=updated");
+        View::redirect("companies/show?id=" . (int) $values["company_id"]);
     }
 
     public function delete(array $input, array $query = []): void
@@ -129,11 +121,14 @@ class ContactController
         }
 
         $model = new Contact();
+        $contact = $model->selectId($id);
 
-        if (!$model->selectId($id)) {
+        if (!$contact) {
             $this->error(404, "Contact introuvable.");
             return;
         }
+
+        $companyId = (int) $contact["company_id"];
 
         try {
             if (!$model->delete($id)) {
@@ -151,7 +146,7 @@ class ContactController
             return;
         }
 
-        View::redirect("contacts?notice=deleted");
+        View::redirect("companies/show?id=" . $companyId);
     }
 
     private function prepareValues(array $input): array

@@ -154,8 +154,15 @@
             {{ submitLabel }}
         </button>
 
+        {% if fromProject %}
+        <a class="button button--secondary"
+            href="{{ base }}/projects/show?id={{ values.project_id }}{% if fromCompany %}&from=company{% endif %}">
+            Retour au projet
+        </a>
+        {% else %}
         <a class="button button--secondary" href="{{ base }}/tasks">
             Annuler
         </a>
+        {% endif %}
     </div>
 </form>

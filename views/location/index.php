@@ -6,10 +6,11 @@
         <h1>Établissements</h1>
         <p>Gérez les établissements des entreprises.</p>
     </div>
-
+    {% if currentUser.role == 'admin' %}
     <a class="button button--primary" href="{{ base }}/locations/create">
         Nouvel établissement
     </a>
+    {% endif %}
 </div>
 
 {% if notice %}
