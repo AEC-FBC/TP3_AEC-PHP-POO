@@ -1,0 +1,15 @@
+DirectoryIndex index.php
+
+RewriteEngine On
+
+# Interdire l'accès HTTP aux dossiers internes et fichiers cachés.
+RewriteRule ^(?:controllers|models|providers|routes|views|vendor)(?:/|$) - [F,L]
+RewriteRule (^|/)\. - [F,L]
+
+# Interdire les fichiers de configuration.
+RewriteRule ^(?:config\.php|router\.php|composer\.(?:json|lock))$ - [F,L]
+
+# Les autres chemins sont traités par le point d'entrée.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]
